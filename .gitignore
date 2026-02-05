@@ -1,1 +1,5 @@
-initial-todo-app/node_modules/.package-lock.json
+# Dependencies
+node_modules/
+
+# Environment
+.env
