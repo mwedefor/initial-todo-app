@@ -1,32 +1,93 @@
 import { config } from './config';
 import * as mockApi from './mockApi';
 
+import { Amplify } from 'aws-amplify';
+import awsconfig from './aws-config';
+import { confirmSignUp, fetchAuthSession, getCurrentUser, resendSignUpCode, signIn, signUp } from 'aws-amplify/auth';
+Amplify.configure(awsconfig);
+
 const IS_MOCK = config.isMock; // Toggle this to switch between mock and real API
+//const API_URL = config.serverUrl;
 
 // Real API implementation using Amplify Auth
 const realApi = {
   async loginUser(email: string, password: string) {
 
-    // TO IMPLEMENT
+    try {
+      await signIn({ username: email, password });
+      const session = await fetchAuthSession();
+      const user = await getCurrentUser();
+
+      return {
+        user: {
+          
+          id: user.userId,
+          email: user.username,
+          name: user.signInDetails?.loginId || email,
+          verified: true, 
+        },
+        token: session.tokens?.idToken?.toString(),
+      };
+    } catch (error: any) {
+      if (error.name === 'UserNotConfirmedException') {
+        throw new Error('Please verify your email first');
+      }
+      throw new Error(error.message || 'Login failed');
+    }    
     
   },
 
-  async registerUser(credentials: {
-    email: string;
-    password: string;
-    name: string;
-  }) {
-        // TO IMPLEMENT
+    async registerUser(credentials: {
+      email: string;
+      password: string;
+      name: string;
+    }) {
+      try {
+        await signUp({
+          username: credentials.email,
+          password: credentials.password,
+          options: {
+            userAttributes: {
+              email: credentials.email,
+              name: credentials.name,
+            },
+          },
+        });
+        
+        return { success: true };
+      } catch (error: any) {
+        if (error.name === 'UsernameExistsException') {
+          throw new Error('Email already registered');
+        }
+        throw new Error(error.message || 'Registration failed');
+      }
+    },
 
-  },
+    async verifyEmail(email: string, code: string) {
+      try {
+        await confirmSignUp({
+          username: email,
+          confirmationCode: code,
+        });
+        
+        return { success: true };
+      } catch (error: any) {
+        if (error.name === 'CodeMismatchException') {
+          throw new Error('Invalid verification code');
+        }
+        throw new Error(error.message || 'Verification failed');
+      }
+    },
 
-  async verifyEmail(email: string, code: string) {
-    // TO IMPLEMENT
-  },
-
-  async resendVerificationCode(email: string) {
-      // TO IMPLEMENT
-  },
+    async resendVerificationCode(email: string) {
+      console.log('Resending verification code to:', email);
+      try {
+        await resendSignUpCode({ username: email });
+        return { success: true };
+      } catch (error: any) {
+        throw new Error(error.message || 'Failed to resend verification code');
+      }
+    },
 
   async getTodos(token: string) {  
     // TO IMPLEMENT
