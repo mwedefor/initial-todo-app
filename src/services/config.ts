@@ -4,7 +4,7 @@ interface Config {
   userPoolId: string;
   userPoolClientId: string;
   identityPoolId: string;
-  //serverUrl: string;
+  serverUrl: string;
 }
 
 const getConfig = (): Config => {
@@ -12,14 +12,14 @@ const getConfig = (): Config => {
   const userPoolId = import.meta.env.VITE_USER_POOL_ID;
   const userPoolClientId = import.meta.env.VITE_USER_POOL_CLIENT_ID;
   const identityPoolId = import.meta.env.VITE_IDENTITY_POOL_ID;
-  //const serverUrl = import.meta.env.VITE_SERVER_URL;
+  const serverUrl = import.meta.env.VITE_SERVER_URL;
 
   return {
     isMock,
     userPoolId,
     userPoolClientId,
     identityPoolId,
-    //serverUrl
+    serverUrl
   };
 };
 
